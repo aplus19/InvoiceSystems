@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Invoice</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Create Invoice</h1>
+    </header>
+    <form method="POST">
+        <label for="customer_id">Customer ID:</label>
+        <input type="number" name="customer_id" required><br><br>
+
+        <label for="items">Items (format: description,quantity,price per line):</label><br>
+        <textarea name="items" rows="5" cols="40" required></textarea><br><br>
+
+        <button type="submit">Create Invoice</button>
+    </form>
+</body>
+</html>
