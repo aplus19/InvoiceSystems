@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Invoice</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Aplus Invoice</div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/add-customer">Add Customer</a>
+            <a href="/create-invoice">Create Invoice</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Create Invoice</h1>
+        <form method="POST">
+            <label for="customer_id">Customer ID:</label>
+            <input type="number" name="customer_id" required>
+
+            <label for="items">Items (format: description,quantity,price per line):</label>
+            <textarea name="items" rows="5" required></textarea>
+
+            <button type="submit">Create Invoice</button>
+        </form>
+    </div>
+</body>
+</html>
