@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en">
+[14:54, 23/05/2025] Aplus data hub: <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -132,6 +132,137 @@
         console.error(error);
         document.getElementById("message").textContent = "Failed to send invoice.";
         document.getElementById("message").style.color = "red";
+      });
+    });
+  </script></body>
+</html>
+[15:00, 23/05/2025] Aplus data hub: <!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #007bff, #ffffff);
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: left;
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Invoice</h2>
+    <input type="text" id="customerName" placeholder="Customer Name">
+    <input type="text" id="customerId" placeholder="Customer ID">
+    <input type="email" id="customerEmail" placeholder="Customer Email"><table id="itemsTable">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Quantity</th>
+      <th>Price</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<button id="addItem">Add Item</button>
+<button id="createInvoice">Create Invoice</button>
+
+<p id="message"></p>
+<div class="footer">Created by Aplus Digital Solutions</div>
+
+  </div>  <!-- EmailJS -->  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>  <script>
+    emailjs.init("Fmi-NSYKqIT9dmupP"); // Your public key
+  </script>  <script>
+    const addItemBtn = document.getElementById("addItem");
+    const tableBody = document.querySelector("#itemsTable tbody");
+
+    addItemBtn.addEventListener("click", () => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="item"></td>
+        <td><input type="number" class="quantity"></td>
+        <td><input type="number" class="price"></td>
+        <td class="total">0.00</td>
+      `;
+      tableBody.appendChild(row);
+
+      const inputs = row.querySelectorAll("input");
+      inputs.forEach(input => {
+        input.addEventListener("input", () => {
+          const quantity = row.querySelector(".quantity").value;
+          const price = row.querySelector(".price").value;
+          const total = quantity * price;
+          row.querySelector(".total").textContent = total.toFixed(2);
+        });
+      });
+    });
+
+    document.getElementById("createInvoice").addEventListener("click", function () {
+      const name = document.getElementById("customerName").value.trim();
+      const id = document.getElementById("customerId").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+
+      let items = [];
+      let rows = document.querySelectorAll("#itemsTable tbody tr");
+      rows.forEach(row => {
+        let item = row.querySelector(".item").value;
+        let quantity = row.querySelector(".quantity").value;
+        let price = row.querySelector(".price").value;
+        items.push(${item} x${quantity} @ ${price});
+      });
+
+      let total = Array.from(document.querySelectorAll(".total")).reduce((sum, cell) => sum + parseFloat(cell.textContent), 0);
+
+      emailjs.send("service_u97et9", "asgp28f", {
+        customer_name: name,
+        customer_id: id,
+        customer_email: email,
+        invoice_items: items.join("\n"),
+        invoice_total: total.toFixed(2)
+      }).then(() => {
+        document.getElementById("message").textContent = "Invoice sent successfully!";
+      }).catch(error => {
+        document.getElementById("message").textContent = "Failed to send invoice.";
+        console.error(error);
       });
     });
   </script></body>
