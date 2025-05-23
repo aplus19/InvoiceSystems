@@ -1,43 +1,38 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Invoice System - Table</title>
+  <title>Invoice System</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 2rem;
-      background: linear-gradient(135deg, #007BFF, #ffffff);
+      background: linear-gradient(to right, #2980b9, #6dd5fa, #ffffff);
     }
     h1 {
       color: #fff;
-      background-color: #007BFF;
+      background-color: #2980b9;
       padding: 1rem;
-      border-radius: 10px;
+      border-radius: 8px;
     }
-    table {
-      width: 100%;
-      max-width: 800px;
-      margin-bottom: 1rem;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th, td {
+    input, textarea, button {
       padding: 0.5rem;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    input {
+      margin: 0.3rem 0;
       width: 100%;
       box-sizing: border-box;
     }
-    button {
-      padding: 0.6rem 1rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 1rem;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      background-color: #fff;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 0.5rem;
+      text-align: center;
     }
     #message {
       margin-top: 1rem;
@@ -46,74 +41,105 @@
   </style>
 </head>
 <body>
-  <h1>Invoice System</h1>
-  <form id="invoiceForm">
-    <table id="itemsTable">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Description</th>
-          <th>Price</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 10 rows -->
-        <!-- Each input has a name with [] to create an array -->
-        <script>
-          for (let i = 0; i < 10; i++) {
-            document.write(`
-              <tr>
-                <td><input type="text" name="item[]" /></td>
-                <td><input type="text" name="description[]" /></td>
-                <td><input type="number" name="price[]" /></td>
-                <td><input type="number" name="amount[]" /></td>
-              </tr>
-            `);
-          }
-        </script>
-      </tbody>
-    </table><input type="text" id="customerName" placeholder="Customer Name" required />
-<input type="email" id="senderEmail" placeholder="Your Email" required />
-<button type="submit">Create Invoice</button>
 
-  </form>  <div id="message"></div>  <!-- EmailJS -->  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>  <script>
-    emailjs.init("Fmi-NSYKqIT9dmupP"); // your public key
+  <h1>Create Invoice</h1>
 
-    document.getElementById("invoiceForm").addEventListener("submit", function(event) {
-      event.preventDefault();
+  <input type="text" id="customerName" placeholder="Customer Name" required>
+  <input type="email" id="customerEmail" placeholder="Customer Email" required>
+  <textarea id="description" placeholder="Invoice Description" rows="3"></textarea>
 
-      const form = event.target;
-      const customerName = document.getElementById("customerName").value;
-      const senderEmail = document.getElementById("senderEmail").value;
-      const items = form.querySelectorAll("input[name='item[]']");
-      const descriptions = form.querySelectorAll("input[name='description[]']");
-      const prices = form.querySelectorAll("input[name='price[]']");
-      const amounts = form.querySelectorAll("input[name='amount[]']");
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="itemsBody">
+      <!-- Items will be inserted here -->
+    </tbody>
+  </table>
+  <button onclick="addItem()">Add Item</button>
 
-      let invoiceDetails = "";
+  <p><strong>Total Amount: </strong><span id="totalAmount">0</span></p>
+  <button id="createBtn">Create Invoice</button>
+  <div id="message"></div>
 
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].value.trim() !== "") {
-          invoiceDetails += Item: ${items[i].value}, Desc: ${descriptions[i].value}, Price: ${prices[i].value}, Amount: ${amounts[i].value}\n;
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init("Fmi-NSYKqIT9dmupP");
+    })();
+
+    let itemIndex = 0;
+
+    function addItem() {
+      const tbody = document.getElementById("itemsBody");
+      if (itemIndex >= 10) return;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="item"></td>
+        <td><input type="number" class="qty" oninput="calculateTotal()"></td>
+        <td><input type="number" class="price" oninput="calculateTotal()"></td>
+        <td class="itemTotal">0</td>
+      `;
+      tbody.appendChild(row);
+      itemIndex++;
+    }
+
+    function calculateTotal() {
+      let total = 0;
+      const rows = document.querySelectorAll("#itemsBody tr");
+      rows.forEach(row => {
+        const qty = parseFloat(row.querySelector(".qty").value) || 0;
+        const price = parseFloat(row.querySelector(".price").value) || 0;
+        const subtotal = qty * price;
+        row.querySelector(".itemTotal").textContent = subtotal.toFixed(2);
+        total += subtotal;
+      });
+      document.getElementById("totalAmount").textContent = total.toFixed(2);
+    }
+
+    document.getElementById("createBtn").addEventListener("click", function() {
+      const name = document.getElementById("customerName").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const totalAmount = document.getElementById("totalAmount").textContent;
+
+      const items = [];
+      document.querySelectorAll("#itemsBody tr").forEach(row => {
+        const item = row.querySelector(".item").value.trim();
+        const qty = row.querySelector(".qty").value.trim();
+        const price = row.querySelector(".price").value.trim();
+        if (item && qty && price) {
+          items.push(${item} x${qty} @ ${price});
         }
+      });
+
+      if (!name || !email || items.length === 0) {
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").textContent = "Please fill all required fields.";
+        return;
       }
 
-      const templateParams = {
-        customer_name: customerName,
-        sender_email: senderEmail,
-        message: invoiceDetails
-      };
-
-      emailjs.send("service_u97et9", "asgp28f", templateParams)
-        .then(function() {
-          document.getElementById("message").textContent = "Invoice sent successfully!";
-          document.getElementById("message").style.color = "green";
-        }, function(error) {
-          document.getElementById("message").textContent = "Failed to send invoice.";
-          document.getElementById("message").style.color = "red";
-          console.error(error);
-        });
+      emailjs.send("service_u97et9", "template_asgp28f", {
+        to_name: name,
+        to_email: email,
+        message: description,
+        items: items.join(", "),
+        total: totalAmount
+      }).then(() => {
+        document.getElementById("message").style.color = "green";
+        document.getElementById("message").textContent = "Invoice sent successfully!";
+      }).catch(error => {
+        console.error("Error:", error);
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").textContent = "Failed to send invoice.";
+      });
     });
-  </script></body>
+  </script>
+</body>
 </html>
