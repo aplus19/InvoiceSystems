@@ -7,28 +7,28 @@
     body {
       font-family: Arial, sans-serif;
       margin: 2rem;
-      background: linear-gradient(to right, #3a7bd5, #00d2ff);
-      color: #fff;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: white;
     }
     h1 {
       color: #fff;
     }
-    input, textarea, button {
+    label {
       display: block;
+      margin-top: 1rem;
+    }
+    input, textarea, button {
       width: 100%;
-      max-width: 400px;
       padding: 0.5rem;
-      margin: 0.5rem 0;
-      border: none;
+      margin-top: 0.3rem;
       border-radius: 5px;
+      border: none;
     }
     button {
-      background-color: #005bea;
+      background-color: #00bcd4;
       color: white;
+      margin-top: 1rem;
       cursor: pointer;
-    }
-    button:hover {
-      background-color: #003fba;
     }
     #message {
       margin-top: 1rem;
@@ -37,88 +37,72 @@
   </style>
 </head>
 <body>
-
   <h1>Create Invoice</h1>
 
+  <label>Customer Name:</label>
   <input type="text" id="customerName" placeholder="Customer Name" />
-  <input type="text" id="item" placeholder="Item" />
-  <input type="number" id="amount" placeholder="Amount" />
-  <input type="text" id="price" placeholder="Price (₵)" />
-  <textarea id="description" placeholder="Description"></textarea>
-  <input type="email" id="email" placeholder="Send to Email Address" />
 
-  <button id="createBtn">Create Invoice</button>
+  <label>Amount:</label>
+  <input type="number" id="amount" placeholder="Amount" />
+
+  <label>Item:</label>
+  <input type="text" id="item" placeholder="Item Name" />
+
+  <label>Description:</label>
+  <textarea id="description" placeholder="Item Description"></textarea>
+
+  <label>Price:</label>
+  <input type="number" id="price" placeholder="Price per Item" />
+
+  <label>Your Email (Sender):</label>
+  <input type="email" id="senderEmail" placeholder="Your Email" />
+
+  <button id="sendBtn">Send Invoice</button>
 
   <div id="message"></div>
 
-  <!-- Firebase App and Firestore -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-
   <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyB_ubtKkJQxTd6KpuPCxCmVGPgcaBzDPAw",
-      authDomain: "invoice-system-5d29a.firebaseapp.com",
-      projectId: "invoice-system-5d29a",
-      storageBucket: "invoice-system-5d29a.appspot.com",
-      messagingSenderId: "361762998741",
-      appId: "1:361762998741:web:c717d23215d3c1b5fc86ac",
-      measurementId: "G-7WM0H8BGT"
-    };
+    (function () {
+      emailjs.init("Fmi-NSYKqlT9dmupP");
+    })();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // EmailJS initialization
-    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your EmailJS Public Key
-
-    document.getElementById("createBtn").addEventListener("click", async () => {
-      const name = document.getElementById("customerName").value.trim();
-      const item = document.getElementById("item").value.trim();
+    document.getElementById("sendBtn").addEventListener("click", function () {
+      const customer = document.getElementById("customerName").value.trim();
       const amount = document.getElementById("amount").value.trim();
-      const price = document.getElementById("price").value.trim();
+      const item = document.getElementById("item").value.trim();
       const description = document.getElementById("description").value.trim();
-      const email = document.getElementById("email").value.trim();
+      const price = document.getElementById("price").value.trim();
+      const senderEmail = document.getElementById("senderEmail").value.trim();
       const messageDiv = document.getElementById("message");
 
-      if (!name || !amount || !item || !price || !description || !email) {
+      if (!customer || !amount || !item || !description || !price || !senderEmail) {
         messageDiv.style.color = "yellow";
-        messageDiv.textContent = "All fields are required.";
+        messageDiv.textContent = "Please fill in all fields.";
         return;
       }
 
-      try {
-        await db.collection("invoices").add({
-          customer: name,
-          item: item,
-          amount: parseFloat(amount),
-          price: parseFloat(price),
-          description: description,
-          email: email,
-          timestamp: new Date()
-        });
+      const templateParams = {
+        customer_name: customer,
+        amount: amount,
+        item: item,
+        description: description,
+        price: price,
+        sender_email: senderEmail
+      };
 
-        // EmailJS email sending
-        await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
-          to_email: email,
-          customer_name: name,
-          item: item,
-          amount: amount,
-          price: price,
-          description: description
+      emailjs
+        .send("service_vvxqa6p", "asgp28f", templateParams)
+        .then(() => {
+          messageDiv.style.color = "lightgreen";
+          messageDiv.textContent = "Invoice sent successfully!";
+        })
+        .catch((error) => {
+          console.error("EmailJS Error:", error);
+          messageDiv.style.color = "red";
+          messageDiv.textContent = "Failed to send invoice.";
         });
-
-        messageDiv.style.color = "lightgreen";
-        messageDiv.textContent = "Invoice saved and email sent successfully!";
-      } catch (error) {
-        console.error("Error:", error);
-        messageDiv.style.color = "red";
-        messageDiv.textContent = "Something went wrong.";
-      }
     });
   </script>
 </body>
