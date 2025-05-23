@@ -1,169 +1,39 @@
-[14:54, 23/05/2025] Aplus data hub: <!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invoice Creator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #2193b0, #6dd5ed);
-      color: #333;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    input, textarea, button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .btn {
-      background-color: #2196F3;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background-color: #1976D2;
-    }
-    #message {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Create Invoice</h2>
-    <input type="text" id="customerName" placeholder="Customer Name">
-    <input type="email" id="customerEmail" placeholder="Customer Email">
-    <textarea id="description" placeholder="Extended Description"></textarea>
-    <hr>
-    <h3>Add Items</h3>
-    <input type="text" id="item" placeholder="Item">
-    <input type="number" id="quantity" placeholder="Quantity">
-    <input type="number" id="price" placeholder="Price">
-    <button class="btn" id="addItem">Add Item</button>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Quantity</th>
-          <th>Price</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="itemsTable"></tbody>
-    </table>
-    <h3>Total Amount: $<span id="totalAmount">0.00</span></h3>
-    <button class="btn" id="createInvoice">Create Invoice</button>
-    <div id="message"></div>
-  </div>  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>  <script>
-    emailjs.init("Fmi-NSYKqIT9dmupP"); // Replace with your Public Key
-
-    const items = [];
-    const itemsTable = document.getElementById("itemsTable");
-    const totalAmount = document.getElementById("totalAmount");
-
-    document.getElementById("addItem").addEventListener("click", () => {
-      const item = document.getElementById("item").value;
-      const quantity = parseInt(document.getElementById("quantity").value);
-      const price = parseFloat(document.getElementById("price").value);
-      if (!item || !quantity || !price) return;
-      const total = quantity * price;
-      items.push({ item, quantity, price, total });
-      const row = <tr><td>${item}</td><td>${quantity}</td><td>$${price.toFixed(2)}</td><td>$${total.toFixed(2)}</td></tr>;
-      itemsTable.innerHTML += row;
-      updateTotal();
-      document.getElementById("item").value = "";
-      document.getElementById("quantity").value = "";
-      document.getElementById("price").value = "";
-    });
-
-    function updateTotal() {
-      const sum = items.reduce((acc, i) => acc + i.total, 0);
-      totalAmount.textContent = sum.toFixed(2);
-    }
-
-    document.getElementById("createInvoice").addEventListener("click", () => {
-      const customerName = document.getElementById("customerName").value;
-      const customerEmail = document.getElementById("customerEmail").value;
-      const description = document.getElementById("description").value;
-      const total = totalAmount.textContent;
-      const itemDetails = items.map(i => ${i.item} (x${i.quantity}) - $${i.total.toFixed(2)}).join("\n");
-
-      if (!customerName || !customerEmail || items.length === 0) {
-        document.getElementById("message").textContent = "Please fill all details and add at least one item.";
-        document.getElementById("message").style.color = "red";
-        return;
-      }
-
-      emailjs.send("service_u97et9", "asgp28f", {
-        to_name: customerName,
-        to_email: customerEmail,
-        message: description,
-        items: itemDetails,
-        total: total
-      })
-      .then(() => {
-        document.getElementById("message").textContent = "Invoice sent successfully!";
-        document.getElementById("message").style.color = "green";
-      }, (error) => {
-        console.error(error);
-        document.getElementById("message").textContent = "Failed to send invoice.";
-        document.getElementById("message").style.color = "red";
-      });
-    });
-  </script></body>
-</html>
-[15:00, 23/05/2025] Aplus data hub: <!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Invoice</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #007bff, #ffffff);
+      background: linear-gradient(to right, #003366, #ffffff);
+      color: #000;
       padding: 20px;
-      color: #333;
     }
     .container {
-      background: white;
-      border-radius: 10px;
+      background: #fff;
       padding: 20px;
       max-width: 800px;
       margin: auto;
       box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      border-radius: 10px;
     }
-    h2 {
+    h1 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #003366;
     }
-    input, button {
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
@@ -173,26 +43,43 @@
       border-collapse: collapse;
     }
     table, th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
     }
     th, td {
       padding: 10px;
-      text-align: center;
-    }
-    .footer {
-      margin-top: 30px;
       text-align: left;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+    footer {
+      margin-top: 30px;
+      text-align: center;
       font-size: 0.9em;
-      color: #555;
+      color: #666;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Create Invoice</h2>
-    <input type="text" id="customerName" placeholder="Customer Name">
-    <input type="text" id="customerId" placeholder="Customer ID">
-    <input type="email" id="customerEmail" placeholder="Customer Email"><table id="itemsTable">
+    <h1>Create Invoice</h1>
+    <label>Customer Name</label>
+    <input type="text" id="customerName"><label>Customer ID</label>
+<input type="text" id="customerId">
+
+<label>Customer Email</label>
+<input type="email" id="customerEmail">
+
+<table id="itemsTable">
   <thead>
     <tr>
       <th>Item</th>
@@ -203,67 +90,88 @@
   </thead>
   <tbody></tbody>
 </table>
-<button id="addItem">Add Item</button>
-<button id="createInvoice">Create Invoice</button>
-
+<button onclick="addItem()">Add Item</button>
+<button onclick="createInvoice()">Create Invoice</button>
 <p id="message"></p>
-<div class="footer">Created by Aplus Digital Solutions</div>
+<footer>Created by Aplus Digital Solutions</footer>
 
-  </div>  <!-- EmailJS -->  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>  <script>
-    emailjs.init("Fmi-NSYKqIT9dmupP"); // Your public key
-  </script>  <script>
-    const addItemBtn = document.getElementById("addItem");
-    const tableBody = document.querySelector("#itemsTable tbody");
+  </div>  <script>
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyB_ubtKkJQxTd6KpuPCxCmVGPgcaBzDPAw",
+      authDomain: "invoice-system-5d29a.firebaseapp.com",
+      projectId: "invoice-system-5d29a",
+      storageBucket: "invoice-system-5d29a.appspot.com",
+      messagingSenderId: "361762998741",
+      appId: "1:361762998741:web:c717d23215d3c1b5fc86ac"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    addItemBtn.addEventListener("click", () => {
+    // EmailJS setup
+    emailjs.init("Fmi-NSYKqlT9dmupP");
+
+    function addItem() {
+      const table = document.querySelector("#itemsTable tbody");
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><input type="text" class="item"></td>
-        <td><input type="number" class="quantity"></td>
-        <td><input type="number" class="price"></td>
-        <td class="total">0.00</td>
+        <td><input type="text" class="item-name"></td>
+        <td><input type="number" class="item-qty"></td>
+        <td><input type="number" class="item-price"></td>
+        <td class="item-total">0</td>
       `;
-      tableBody.appendChild(row);
+      table.appendChild(row);
 
-      const inputs = row.querySelectorAll("input");
-      inputs.forEach(input => {
+      row.querySelectorAll("input").forEach(input => {
         input.addEventListener("input", () => {
-          const quantity = row.querySelector(".quantity").value;
-          const price = row.querySelector(".price").value;
-          const total = quantity * price;
-          row.querySelector(".total").textContent = total.toFixed(2);
+          const qty = parseFloat(row.querySelector(".item-qty").value) || 0;
+          const price = parseFloat(row.querySelector(".item-price").value) || 0;
+          row.querySelector(".item-total").textContent = (qty * price).toFixed(2);
         });
       });
-    });
+    }
 
-    document.getElementById("createInvoice").addEventListener("click", function () {
-      const name = document.getElementById("customerName").value.trim();
-      const id = document.getElementById("customerId").value.trim();
-      const email = document.getElementById("customerEmail").value.trim();
+    async function createInvoice() {
+      const name = document.getElementById("customerName").value;
+      const id = document.getElementById("customerId").value;
+      const email = document.getElementById("customerEmail").value;
+      const items = [];
+      let totalAmount = 0;
 
-      let items = [];
-      let rows = document.querySelectorAll("#itemsTable tbody tr");
-      rows.forEach(row => {
-        let item = row.querySelector(".item").value;
-        let quantity = row.querySelector(".quantity").value;
-        let price = row.querySelector(".price").value;
-        items.push(${item} x${quantity} @ ${price});
+      document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+        const item = row.querySelector(".item-name").value;
+        const qty = parseFloat(row.querySelector(".item-qty").value);
+        const price = parseFloat(row.querySelector(".item-price").value);
+        const total = qty * price;
+        totalAmount += total;
+        items.push({ item, qty, price, total });
       });
 
-      let total = Array.from(document.querySelectorAll(".total")).reduce((sum, cell) => sum + parseFloat(cell.textContent), 0);
+      try {
+        await db.collection("invoices").add({
+          name,
+          id,
+          email,
+          items,
+          totalAmount,
+          timestamp: new Date()
+        });
 
-      emailjs.send("service_u97et9", "asgp28f", {
-        customer_name: name,
-        customer_id: id,
-        customer_email: email,
-        invoice_items: items.join("\n"),
-        invoice_total: total.toFixed(2)
-      }).then(() => {
-        document.getElementById("message").textContent = "Invoice sent successfully!";
-      }).catch(error => {
-        document.getElementById("message").textContent = "Failed to send invoice.";
+        await emailjs.send("service_u97et9", "asgp28f", {
+          to_email: email,
+          customer_name: name,
+          customer_id: id,
+          total_amount: totalAmount.toFixed(2),
+          message: JSON.stringify(items, null, 2)
+        });
+
+        document.getElementById("message").textContent = "Invoice sent and saved successfully!";
+        document.getElementById("message").style.color = "green";
+      } catch (error) {
+        document.getElementById("message").textContent = "Failed to create invoice.";
+        document.getElementById("message").style.color = "red";
         console.error(error);
-      });
-    });
+      }
+    }
   </script></body>
 </html>
