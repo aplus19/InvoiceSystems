@@ -1,6 +1,8 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Create Invoice</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -71,30 +73,36 @@
 <body>
   <div class="container">
     <h1>Create Invoice</h1>
+    
     <label>Customer Name</label>
     <input type="text" id="customerName">
+
     <label>Customer ID</label>
     <input type="text" id="customerId">
-    <label>Customer Email</label>
-    <input type="email" id="customerEmail"><table id="itemsTable">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Quantity</th>
-      <th>Price</th>
-      <th>Total</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-<button onclick="addItem()">Add Item</button>
-<button onclick="createInvoice()">Create Invoice</button>
-<p id="message"></p>
-<footer>Created by Aplus Digital Solutions</footer>
 
+    <label>Customer Email</label>
+    <input type="email" id="customerEmail">
+
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button onclick="addItem()">Add Item</button>
+    <button onclick="createInvoice()">Create Invoice</button>
+    <p id="message"></p>
+    <footer>Created by Aplus Digital Solutions</footer>
   </div>
+
   <script>
-    // Firebase setup
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyB_ubtKkJQxTd6KpuPCxCmVGPgcaBzDPAw",
       authDomain: "invoice-system-5d29a.firebaseapp.com",
@@ -104,72 +112,73 @@
       appId: "1:361762998741:web:c717d23215d3c1b5fc86ac"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();// EmailJS setup
-emailjs.init("u33MnQn6oq7vNSjro");
+    const db = firebase.firestore();
 
-function addItem() {
-  const table = document.querySelector("#itemsTable tbody");
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td><input type="text" class="item-name"></td>
-    <td><input type="number" class="item-qty"></td>
-    <td><input type="number" class="item-price"></td>
-    <td class="item-total">0</td>
-  `;
-  table.appendChild(row);
+    // EmailJS init
+    emailjs.init("u33MnQn6oq7vNSjro");
 
-  row.querySelectorAll("input").forEach(input => {
-    input.addEventListener("input", () => {
-      const qty = parseFloat(row.querySelector(".item-qty").value) || 0;
-      const price = parseFloat(row.querySelector(".item-price").value) || 0;
-      row.querySelector(".item-total").textContent = (qty * price).toFixed(2);
-    });
-  });
-}
+    function addItem() {
+      const table = document.querySelector("#itemsTable tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="item-name"></td>
+        <td><input type="number" class="item-qty"></td>
+        <td><input type="number" class="item-price"></td>
+        <td class="item-total">0</td>
+      `;
+      table.appendChild(row);
 
-async function createInvoice() {
-  const name = document.getElementById("customerName").value;
-  const id = document.getElementById("customerId").value;
-  const email = document.getElementById("customerEmail").value;
-  const items = [];
-  let totalAmount = 0;
+      row.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", () => {
+          const qty = parseFloat(row.querySelector(".item-qty").value) || 0;
+          const price = parseFloat(row.querySelector(".item-price").value) || 0;
+          row.querySelector(".item-total").textContent = (qty * price).toFixed(2);
+        });
+      });
+    }
 
-  document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
-    const item = row.querySelector(".item-name").value;
-    const qty = parseFloat(row.querySelector(".item-qty").value);
-    const price = parseFloat(row.querySelector(".item-price").value);
-    const total = qty * price;
-    totalAmount += total;
-    items.push({ item, qty, price, total });
-  });
+    async function createInvoice() {
+      const name = document.getElementById("customerName").value;
+      const id = document.getElementById("customerId").value;
+      const email = document.getElementById("customerEmail").value;
+      const items = [];
+      let totalAmount = 0;
 
-  try {
-    await db.collection("invoices").add({
-      name,
-      id,
-      email,
-      items,
-      totalAmount,
-      timestamp: new Date()
-    });
+      document.querySelectorAll("#itemsTable tbody tr").forEach(row => {
+        const item = row.querySelector(".item-name").value;
+        const qty = parseFloat(row.querySelector(".item-qty").value);
+        const price = parseFloat(row.querySelector(".item-price").value);
+        const total = qty * price;
+        totalAmount += total;
+        items.push({ item, qty, price, total });
+      });
 
-    await emailjs.send("service_u97et9", "gpoa4qj", {
-      to_email: email,
-      customer_name: name,
-      customer_id: id,
-      total_amount: totalAmount.toFixed(2),
-      message: JSON.stringify(items, null, 2)
-    });
+      try {
+        await db.collection("invoices").add({
+          name,
+          id,
+          email,
+          items,
+          totalAmount,
+          timestamp: new Date()
+        });
 
-    document.getElementById("message").textContent = "Invoice sent and saved successfully!";
-    document.getElementById("message").style.color = "green";
-  } catch (error) {
-    document.getElementById("message").textContent = "Failed to create invoice.";
-    document.getElementById("message").style.color = "red";
-    console.error(error);
-  }
-}
+        await emailjs.send("service_u97et9", "gpoa4qj", {
+          to_email: email,
+          customer_name: name,
+          customer_id: id,
+          total_amount: totalAmount.toFixed(2),
+          message: JSON.stringify(items, null, 2)
+        });
 
+        document.getElementById("message").textContent = "Invoice sent and saved successfully!";
+        document.getElementById("message").style.color = "green";
+      } catch (error) {
+        document.getElementById("message").textContent = "Failed to create invoice.";
+        document.getElementById("message").style.color = "red";
+        console.error(error);
+      }
+    }
   </script>
 </body>
 </html>
